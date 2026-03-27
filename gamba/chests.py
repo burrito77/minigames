@@ -47,9 +47,10 @@ class BasicChest:
         return range[0] + randVal
 
 
-    #opens and returns how money have you won
-    def open(self) -> int:
-        return self.randomInRange(chances.globalChances.rollOne(),False)
+    #opens and returns how money have you won and of what rarity
+    def open(self) -> tuple[int, chances.Chance]:
+        rarity = chances.globalChances.rollOne()
+        return (self.randomInRange(rarity,False), rarity)
 
 class UltraChest:
     def open(self):

@@ -17,15 +17,22 @@ class GameChances():
     
     #get current value of your specified chance
     def getRaw(self, chance:Chance):
-          return self.chances[chance]
+          return self._chances[chance]
     
     #get real % of your chance, returns chance as 0-1
     def getPercentage(self, chance:Chance):
-          return self.chances[chance] / sum(self.chances)
+          return self._chances[chance] / sum(self._chances)
 
     #set what should be the final chance of specified chance, this WILL change percentage of the other values, ofc
     #percentage must be between 0 - 1
     def setToPercent(self, chance, percentage):
+        if percentage == 0:
+              for i in len(self._chances):
+                  if i == chance:
+                        self._chances[i] = 1
+                  else:
+                        self._chances[i] = 0
+
         if percentage < 0 or percentage > 1:
               return
         self._chances[chance] = percentage * (sum(self._chances) - self._chances[chance]) / (1 - percentage) 
@@ -46,9 +53,9 @@ class GameChances():
     def rollOne(self) -> Chance:
           r = random.random()
           cursum = 0
-          for i in range(len(self.chances)):
-                cursum+=self.chances[i]
-                if r <= cursum:
+          for i in range(len(self._chances)):
+                cursum+=self._chances[i]
+                if r * sum(self._chances) <= cursum:
                       return i
     
     #print many iterations
