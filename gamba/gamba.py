@@ -46,6 +46,34 @@ legendaryRange = [50,150]
 eliteRange = [300,1000]
 mythicRange = [20000,40000]
 
+def roll_item(item_chances):
+    """
+    Rolls for each item in order.
+    Returns the lowest index that succeeds, or -1 if none succeed.
+    """
+    for i, chance in enumerate(item_chances):
+        roll = random.randint(1, 1_000_000)
+        if roll <= chance:
+            return i  # lowest index that succeeded
+    return -1  # none succeeded
+
+#item chances in a million
+itemChances = [
+    2500, #cigarettes , 50% exhaustion down, vip is expensive, make chest more expensive
+    300, #security,  inverts winning amounts common gives extreme quanitty, while elite gives negative money
+    400, #instagram reels, skips many rounds and gives extreme exhaustion
+    800, #gradma, inherit money
+    800, #toilet break, get stabbed by angry john (exhaustion and lose money)
+    800, #your ex texted you, makes common more common
+    800, #mafia, get exhausted and lose money
+    400, #gun, from now on you cannot get common
+    1000, #jerk off, get rid of almost all exhaustion and gain a bit chance for mythic
+    500, #pen, hugely increases winning amount
+    1000, #mcdonald coupon, disables all effects and exhaustion
+    1000, #crackhead talisman, heroin funny multiplier equals zero
+    2 #forced exit, you leave the casino
+]
+
 basicChest = 10
 ultraChest = 25
 
@@ -70,15 +98,27 @@ vipmembership = 1
 
 
 def wait():
-    totalTime = random.random()*secondDelay
-    r = random.randint(14,36)
+    totalTime = secondDelay
+    r = random.randint(30, 40)
 
-    randomCols=[Fore.WHITE,Fore.GREEN,Fore.BLUE,Fore.YELLOW,Fore.RED,Fore.MAGENTA]
+    colors = [
+        Fore.WHITE,    # common
+        Fore.GREEN,    # rare
+        Fore.BLUE,     # epic
+        Fore.YELLOW,   # legendary
+        Fore.RED,      # elite
+        Fore.MAGENTA   # mythic
+    ]
 
+    weights = [common, rare + 5, epic + 2, legendary + 0.5, elite + 0.1, mythic + 0.001]
+
+    it = -15
     for x in range(r):
-        rx = random.randint(0,len(randomCols)-1)
-        print(f"{randomCols[rx]}##")
-        time.sleep(totalTime/r)
+        it+=1
+        col = random.choices(colors, weights=weights, k=1)[0]
+        print(f"{col}##")
+        time.sleep(max((max(totalTime, 0.01) / r) + it*0.01, 0))
+
     print(Style.RESET_ALL)
 
 def openBox():
@@ -113,7 +153,7 @@ def openBox():
         print(f"********** YOU WON: ###[LEGENDARY]### RARITY MONEY ********")
         print(f"********** YOU WON: ###[LEGENDARY]### RARITY MONEY ********")
         print(f"*************************JACKPOT***************************")
-        rcash = random.randint(50,150)
+        rcash = random.randint(legendaryRange[0],legendaryRange[1])
         money += rcash
         print(f"REWARD: {rcash}{Style.RESET_ALL}")
         return
@@ -139,12 +179,170 @@ def openUltraBox():
     print(f"{Fore.CYAN}congratulations you have won {r}${Style.RESET_ALL}")
     money+=r
 
+
+exhaustion = 0
+def handleItem(number):
+    global exhaustion
+    global basicChest
+    global ultraChest
+    global vip
+    global russianRoulete
+    global vodkashot
+    global commonRange
+    global rareRange
+    global epicRange
+    global legendaryRange
+    global eliteRange
+    global mythicRange
+    global round
+    global money
+    global vipactive
+    global basicChestCount
+    global common
+    global rare
+    global epic
+    global legendary 
+    global mythic
+    global heroinActive
+    global energydrinkactive
+    global funny
+
+
+    if number == -1:
+        return
+    
+    if number == 0:
+        print(f"{Fore.MAGENTA} You aquired item 'Cigaretts' {Style.RESET_ALL}")
+        print("From now on you have cancer, but you managed to chill out a bit")
+        exhaustion = exhaustion * 0.8
+        basicChest += 3
+        ultraChest += 10
+        vip = vip * 1.5
+        time.sleep(5)
+
+    if number == 1:
+        print(f"{Fore.MAGENTA} You aquired item 'Security guard' {Style.RESET_ALL}")
+        print("Security guard watches over your shoulder, be sure not to win huge money")
+        commonRange = [50,100]
+        rareRange = [25,75]
+        epicRange = [10,20]
+        legendaryRange = [5,15]
+        eliteRange = [1,3]
+        mythicRange = [-5, 0]
+        time.sleep(5)
+    if number == 2:
+        print(f"{Fore.MAGENTA} You aquired item 'Instagram reels' {Style.RESET_ALL}")
+        print("Time flies when scrolling reels right? :D")
+        round = 50000
+        exhaustion += 10
+        time.sleep(5)
+    if number == 3:
+        print(f"{Fore.MAGENTA} You aquired item 'Rich grandma' {Style.RESET_ALL}")
+        print("You married old lady in casino and she died 7 seconds later, you inhereted all of her wealth")
+        money += 900000
+        vipactive = True
+        time.sleep(5)
+        return
+    if number == 4:
+        print(f"{Fore.MAGENTA} You aquired item 'Toilet break' {Style.RESET_ALL}")
+        print("You were backstabbed by angry Joe (-1000$) and you will be left with lifelong injuries")
+        vipactive = False
+        exhaustion += 35
+        basicChestCount -= 10
+        money -= 1000
+        time.sleep(5)
+        return
+    if number == 5:
+        print(f"{Fore.MAGENTA} You aquired item 'Ex messaged you' {Style.RESET_ALL}")
+        print("As the title says. This is not good btw")
+        exhaustion += 50
+        common += 700
+        time.sleep(5)
+        return
+    if number == 6:
+        print(f"{Fore.MAGENTA} You aquired item 'Mafia' {Style.RESET_ALL}")
+        print("It looks like you havent yet paid some of the thing you owe (1 kidney and 70000$)")
+        exhaustion += 10
+        money -= 70000
+        time.sleep(5)
+        return
+    if number == 7:
+        print(f"{Fore.MAGENTA} You aquired item 'Gun' {Style.RESET_ALL}")
+        print("Hell yeah")
+        common=0
+        time.sleep(5)
+        return
+    if number == 8:
+        print(f"{Fore.MAGENTA} You aquired item 'Jerk off' {Style.RESET_ALL}")
+        print("You finally lost it, but that is actually good (probably)")
+        exhaustion = exhaustion * 0.75
+        mythic += 0.2
+        time.sleep(5)
+        return
+    if number == 9:
+        print(f"{Fore.MAGENTA} You aquired item 'Pen' {Style.RESET_ALL}")
+        print("You just know you had to write those zeroes to the checks")
+        exhaustion += 1
+        commonRange = [10,100]
+        rareRange = [100,1000]
+        epicRange = [1000,10000]
+        legendaryRange = [10000,100000]
+        eliteRange = [1000000,10000000]
+        mythicRange = [11111111111111, 111111111111111111111111111111]
+        time.sleep(5)
+        return
+    if number == 10:
+        print(f"{Fore.MAGENTA} You aquired item 'Mcdonald coupon' {Style.RESET_ALL}")
+        print("It was so tasty you feel like you ressurected")
+        vipactive = False
+        heroinActive = False
+        energydrinkactive = False
+        funny = 1
+        time.sleep(5)
+        return
+    if number == 11:
+        print(f"{Fore.MAGENTA} You aquired item 'Crackhead talisman' {Style.RESET_ALL}")
+        print("You can stop whenever you want, trust me bro")
+        funny = 0
+        time.sleep(5)
+        return
+    if number == 12:
+        print(f"{Fore.MAGENTA} You aquired item 'Forced exit' {Style.RESET_ALL}")
+        print("You did it, you can finally leave now")
+        print(f"you played until round {round}")
+        print(f"you gained {money - 100}$ ({(money-100)*0.15}$ after taxes)")
+        time.sleep(5)
+        exit()
+   
+
 borrowLimit = 31
 totalWinnings = 0
 round = 0
 funny = 1
+
+
+
 while True:
     round += 1
+    handleItem(roll_item(itemChances))
+    if round > 200:
+        if exhaustion == 0:
+            exhaustion += 0.001
+
+    if exhaustion > 0:
+        rxx = random.random()
+        exhaustion += 0.007 * exhaustion
+        money -= exhaustion/2
+        if rxx > 0.9:
+            print(f"Hey you are exhausted, you should chill out. Current exhaustion: {exhaustion}, this could negatively impact your health :(")
+            money -= exhaustion
+            basicChest += exhaustion/5
+            ultraChest += exhaustion/4
+            vip += exhaustion
+            energydrink += exhaustion/2
+            secondDelay += 0.01
+            
+
     for x in range(prostituteCount):
         r = (random.random() - 0.495)*2
         #more you pay at the shop, the more you win
@@ -153,7 +351,7 @@ while True:
         money-=2
         money+=moneytowin
 
-    if money<=0 and basicChestCount <= 0 and ultraChestCount <= 0:
+    if money<=0 and basicChestCount <= 0 and ultraChestCount <= 0 and prostituteCount > 0:
         print(f"one golddigger has left you, you have {prostituteCount} left")
         prostituteCount-=1
 
@@ -191,6 +389,8 @@ while True:
     
     command = input()
     #command ="open"
+
+
     if command=="open":
         if basicChestCount<1:
             print("not enough chests")
@@ -214,13 +414,15 @@ while True:
             ultraChestCount-=1
             print("--------------------------------")
     if command=="bank":
-        print(f"good job! current balance on your account is: {money}$")
+        round = round -1
+        print(f"good job ! current balance on your account is: {money}$")
         print("keep on gambling")
         print(f"you have {basicChestCount} basic chests and {ultraChestCount} ultra chests")
         print(f"vip: {vipactive}")
         print(f"energy drink: {energydrinkactive}")
         print(f"drugged: {heroinActive}")
     if command=="shop":
+        round = round -1
         print(f"BASIC CHEST ..... {basicChest}$ (GOOD FOR GAMBLING ENTHUSIAST WHO WANT TO QUICKLY GAIN A BIT OF MONEY)")
         print(f"ULTRA CHEST ..... {ultraChest}$ (Optimal for gambling professionals, who are not afraid of any risks)")
         print(f"---------------------")
@@ -262,6 +464,14 @@ while True:
             basicChestCount+=20
         else:
             print("not enough money")
+    if command=="basic 10000":
+        if money>=basicChest*10000:
+            print("thank you for buying 10_000 basic chests")
+            money-=basicChest*10000
+            basicChestCount+=10000
+            exhaustion += 1
+        else:
+            print("not enough money")
     if command=="ultra 2":
         if money>=ultraChest*2:
             print("thank you for buying 2 ultra chests")
@@ -278,11 +488,11 @@ while True:
             secondDelay*=0.94
             
             #chacnes
-            rare+=2
-            epic+=0.7
-            legendary+=0.4
-            elite+=0.03
-            mythic = mythic*1.5
+            rare+=2.3
+            epic+=0.8
+            legendary+=0.41
+            elite+=0.033
+            mythic = mythic + 0.01
             vip+=100+vip*2
 
             #prices
@@ -292,7 +502,7 @@ while True:
             vodkashot-=2
             russianRoulete-=40
 
-
+            exhaustion+=0.001
         else:
             print("not enough money")
     if command=="energy":
@@ -303,6 +513,7 @@ while True:
             secondDelay = secondDelay*0.9
             money-=energydrink
             energydrink = max(math.ceil(energydrink/(secondDelay/10)),1)
+            exhaustion += 0.0001
         else:
             print("not enough money")
     if command=="borrow":
@@ -318,6 +529,11 @@ while True:
             "please pay for VIP first"
         else:
             print("substracting 50$ from your account")
+            exhaustion += 0.1
+            if basicChestCount > 1000:
+                exhaustion += basicChestCount/1000
+                print(f"Opening of Chest quantities larger than 1000 has an extra fee {(exhaustion / (exhaustion + 100)) * 100}%")
+                money *= 1 - (exhaustion / (exhaustion + 100))
             money = money-50
             totalWinnings=0
             for x in range(basicChestCount):
@@ -330,10 +546,12 @@ while True:
             print(f"a 0.5% fee will be substracted from your account")
             money = money*0.995
     if command=="xd":
-        money = 300
+        money = 3000
     if command=="vodka":
         if money>=vodkashot:
             print("you drank shot of vodka")
+            if exhaustion > 0 :
+                exhaustion -= 0.5
             money-=vodkashot
             r = random.randint(0,int(50-(vodkashot/5)))
             print(f"you are drunk and do not remember how you got {r}$ into your bank account, but hey it definitevely wont have any side effects")
@@ -397,6 +615,7 @@ while True:
             basicChest-=3
             ultraChest-=10
             vodkashot-=30
+            exhaustion += 10
         else:
             print("not enough money")
     if command=="prostitute":
@@ -408,6 +627,8 @@ while True:
             vipmembership+=7*prostituteCount
             energyfine+=2
             prostituteCount+=1
+            exhaustion += 0.2
+
     if command=="sell":
         print("selling house, car, child, wife")
         print("+1000$")
@@ -415,3 +636,9 @@ while True:
         energydrinkactive=True
         heroinActive=True
         vipactive=True
+    
+    if command=="":
+        print("Either gamble or leave\n-1% of your account value")
+        exhaustion+=0.2
+        money = money * 0.99
+        round = round - 1
