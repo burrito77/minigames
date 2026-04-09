@@ -1,62 +1,85 @@
-import chests
-import random
+
 from enum import IntEnum
+import output
+import shop
+import sys
 
-class Player():
+# --- Player Values ---
+money = 100
+rawIncomePercent = 1.0
+openWait = 11
 
-    #player values
-    money = 100
+# --- Inventory ---
+basicChests = 20
+ultraChests = 0
+premiumChests = 0
+
+# --- Effects System ---
+class Effects(IntEnum):
+    VIPPower = 0
+    EnergyLevel = 1
+    Exhaustion = 2
+    DruggedLevel = 3
+    DrunkLevel = 4
+    GoldDiggerCount = 5
+    NicotineLevel = 6
+    CasinoThreatLevel = 7
+
+# Initialize the list with zeros for each effect
+effectValues = [0] * len(Effects)
+
+# --- Functions ---
+
+def increaseEffect(effect: Effects, amount=1):
+    global effectValues
+    global openWait
     
-    #percentage of income actually coming to the player account
-    rawIncomePercent = 1
+    effectValues[effect] += amount
 
+    if effect == Effects.NicotineLevel:
+         openWait = 11/(effectValues[effectValues]/20 + 1)
+
+def clearEffect(effect: Effects):
+    global effectValues
+    effectValues[effect] = 0
+
+def subtractFunds(amount, force=False) -> bool:
+    global money
+    if force:
+        money -= amount
+        output.dPrint(f"Substracted {amount}$ from player's account")
+        return money >= 0
+    else:
+        if money - amount < 0:
+            return False
+        money -= amount
+        output.dPrint(f"Substracted {amount}$ from player's account")
+        return True
+
+def addFunds(amount):
+    global money
+    money += amount * rawIncomePercent
+    output.dPrint(f"Added {amount * rawIncomePercent}$ into player's account")
+
+def onRound():
+    if effectValues[Effects.VIPPower] > 0:
+        shop.vip.onUpdate()
+
+    if effectValues[Effects.NicotineLevel] > 0:
+        shop.cigs.onUpdate()
+
+    if effectValues[Effects.DruggedLevel] > 0:
+        shop.drugs.onUpdate()
     
-    #inventory
+    if effectValues[Effects.EnergyLevel] > 0:
+        shop.energy.onUpdate()
 
-    #all together
-    basicChests = 0
-    ultraChests = 0
-    premiumChests = 0
+    if effectValues[Effects.DrunkLevel] > 0:
+        shop.vodka.onUpdate()
 
+    if effectValues[Effects.GoldDiggerCount] > 0:
+        shop.prostitute.onUpdate()
 
-            
-    class Effects(IntEnum):
-        VIPPower = 0
-        EnergyLevel = 1
-        Exhaustion = 2
-        DruggedLevel = 3
-        DrunkLevel = 4
-        GoldDiggerCount = 5
-        NicotineLevel = 6
-        CasinoThreatLevel = 7
-
-    def increaseEffect(self, effect:Effects, amount = 1):
-        self.effectValues[effect] += amount
-    
-    def clearEffect(self, effect:Effects):
-        self.effectValues[effect] = 0
-
-    #substract funds from player, if force = true it does so forcefully even through the limit
-    #return false if there is negative amount of cash after transaction
-    def subtractFunds(self, amount, force = False) -> bool:
-        if force:
-            self.money -= amount
-            if self.money < 0:
-                return False
-        else:
-            if self.money - amount < 0:
-                return False
-            else:
-                self.money -= amount
-                return True
-
-    def addFunds(self, amount):
-        self.money += amount * self.rawIncomePercent
-
-    effectValues = [0,0,0,0,0,0,0,0]
-
-    
-
-
-
-
+#tries to die the player
+def die():
+    sys.exit()

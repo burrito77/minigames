@@ -1,11 +1,18 @@
-import shop
-import Player
 import chances
-import chests
+import player
+import shop
+import window
+import basicChest
 
-basicChest = chests.BasicChest()
-player = Player.Player()
+if __name__ == "__main__":
 
-if player.basicChests > 0:
-    am, rr = basicChest.open()
-    player.addFunds(am)
+    window.runWindow()
+    
+
+
+
+    print("x")
+
+def newRound():
+    player.onRound()
+   
