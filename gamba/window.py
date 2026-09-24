@@ -147,7 +147,7 @@ class GameGUI:
             ("vip", casino.shop.vip), ("energy", casino.shop.energy),
             ("cigs", casino.shop.cigs), ("vodka", casino.shop.vodka),
             ("drugs", casino.shop.drugs), ("prostitute", casino.shop.prostitute),
-            ("russian", casino.shop.russian)
+            ("russian", casino.shop.russian), ("borrow", casino.shop.borrow)
         ]
 
         for i, (key, obj) in enumerate(items_data):
@@ -293,7 +293,8 @@ class GameGUI:
             "vodka": casino.shop.vodka,
             "drugs": casino.shop.drugs,
             "prostitute": casino.shop.prostitute,
-            "russian": casino.shop.russian
+            "russian": casino.shop.russian,
+            "borrow": casino.shop.borrow
         }
 
         
@@ -318,7 +319,7 @@ class GameGUI:
     def onQuickBuy(self, amount):
         """Custom callback for bulk buying chests."""
         # Calculate total cost (assuming basic chest price is in casino.shop.basic_price)
-        unit_price = 10.0 # Or use casino.shop.basic_price if it exists
+        unit_price = casino.basicChest.cost
         total_cost = unit_price * amount
 
         if casino.player.money >= total_cost:
@@ -342,6 +343,13 @@ class GameGUI:
                 pass # onOpenUltra logic
             elif chest_id == "premium": 
                 pass # onOpenPremium logic
+        if mode == "all":
+            if chest_id == "basic": 
+                self.onOpenAllBasic()
+            elif chest_id == "ultra": 
+                pass # onOpenUltra logic
+            elif chest_id == "premium": 
+                pass # onOpenPremium logic
         self.onUpdate()
 
     def onOpenBasic(self):
@@ -359,6 +367,20 @@ class GameGUI:
                 self.is_rolling = False 
 
             self.roll_chest(rr, rs, casino.player.openWait, callback=on_finish) # Changed duration to 3s for better feel
+
+    def onOpenAllBasic(self):
+        totalMoney = 0
+        if casino.player.basicChests > 0:
+            for i in range(casino.player.basicChests):
+                rs, rr = casino.basicChest.open()
+                totalMoney+=rs
+                casino.player.basicChests-=1
+                casino.player.addFunds(rs)
+                self.set_balance(casino.player.money * (1 - casino.shop.vip.vipWinFee/100))
+            self.print_w(f"Total winnings: {totalMoney}$, a VIP {casino.shop.vip.vipWinFee}% fee will be deducted from your winnings")
+            self.spinner_canvas.create_text(600/2, 115, text=f"+ {totalMoney}$\n - VIP {casino.shop.vip.vipWinFee}% fee", fill="#00ccff", font=("Segoe UI", 22, "bold"))
+        
+
 
     def roll_chest(self, winning_rarity, amount, duration, callback):
         canvas = self.spinner_canvas

@@ -8,9 +8,10 @@ import sys
 money = 100
 rawIncomePercent = 1.0
 openWait = 11
+currentRound = 0
 
 # --- Inventory ---
-basicChests = 20
+basicChests = 0
 ultraChests = 0
 premiumChests = 0
 
@@ -37,7 +38,12 @@ def increaseEffect(effect: Effects, amount=1):
     effectValues[effect] += amount
 
     if effect == Effects.NicotineLevel:
-         openWait = 11/(effectValues[effectValues]/20 + 1)
+         pass
+
+    if effect == Effects.EnergyLevel:
+        percentageDecrease =  1 - (1 / 1.05 ** amount)
+        # 0.05 -> 0.1 
+        openWait = openWait*(1-percentageDecrease)
 
 def clearEffect(effect: Effects):
     global effectValues
@@ -58,10 +64,14 @@ def subtractFunds(amount, force=False) -> bool:
 
 def addFunds(amount):
     global money
+    if(amount<0):
+        amount = 0
     money += amount * rawIncomePercent
+    
     output.dPrint(f"Added {amount * rawIncomePercent}$ into player's account")
 
 def onRound():
+    global currentRound
     if effectValues[Effects.VIPPower] > 0:
         shop.vip.onUpdate()
 
@@ -80,6 +90,17 @@ def onRound():
     if effectValues[Effects.GoldDiggerCount] > 0:
         shop.prostitute.onUpdate()
 
+    if currentRound % 1000 == 0 and currentRound > 0:
+        output.print_n(f"Congratulations on surviving another 1000 rounds in our casino. As thank you gift you receive one (1) ultra chest")
+        ultraChests += 1
+
 #tries to die the player
 def die():
     sys.exit()
+
+def tryDie():
+    if basicChests > 0 or ultraChests > 0 or premiumChests > 0:
+        return
+
+    if money >= shop.casino.basicChest.cost or shop.prostitute.count > 0:
+        return

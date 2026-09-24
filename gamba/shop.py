@@ -48,6 +48,7 @@ class VIP(ShopItem):
         desc = f"For just small price of {price}$* gain noticeable gambling advantage\n* Fees excluded"
         super().__init__(name="Open Premium account", price=price, description=desc)
         self.vipRoundlyFee = 1
+        self.vipWinFee = 1.5
 
     #increase chances and price, decrease some of the costs
     def _on_purchased(self):
@@ -59,6 +60,7 @@ class VIP(ShopItem):
         chances.globalChances.increaseByRaw(chances.Chance.MYTHIC, 0.001)
         self.price += 100 + self.price * 2
         casino.basicChest.cost -= 1
+        casino.player.ultraChests += 1
         vip.price += 0.1
 
     def onUpdate(self):
@@ -208,21 +210,24 @@ class DRUGS(ShopItem):
     #increase all and delete common chance
     def _on_purchased(self):
         self.funny += 1
-        self.price = self.price + self.price ** self.funny
-        chances.globalChances.increaseByMultiplier(chances.Chance.COMMON, 0)
-        chances.globalChances.increaseByRaw(chances.Chance.RARE, 50)
-        chances.globalChances.increaseByRaw(chances.Chance.EPIC, 50)
-        chances.globalChances.increaseByRaw(chances.Chance.LEGENDARY, 40)
-        chances.globalChances.increaseByRaw(chances.Chance.ELITE, 20)
-        chances.globalChances.increaseByRaw(chances.Chance.MYTHIC, 1)
+        self.price = self.price*2 + 3 ** self.funny
+        player.increaseEffect(player.Effects.DruggedLevel, 1)
+        player.openWait = 0.2 + 0.1*self.funny
+        chances.globalChances.increaseByMultiplier(chances.Chance.COMMON, -1)
+        chances.globalChances.increaseByRaw(chances.Chance.RARE, 0)
+        chances.globalChances.increaseByRaw(chances.Chance.EPIC, 70)
+        chances.globalChances.increaseByRaw(chances.Chance.LEGENDARY, 100)
+        chances.globalChances.increaseByRaw(chances.Chance.ELITE, 100)
+        chances.globalChances.increaseByRaw(chances.Chance.MYTHIC, 20)
         casino.basicChest.cost += 1
         
-        self.fee += round(self.price/20)
+        self.fee += round(self.price/50)
 
     #slowly increase common, apply fee
     def onUpdate(self):
-        chances.globalChances.increaseByRaw(chances.Chance.COMMON, 2 * self.funny)
+        chances.globalChances.increaseByRaw(chances.Chance.COMMON, 3 * self.funny)
         player.increaseEffect(player.Effects.Exhaustion, 0.1 * self.funny)
+        player.openWait += self.funny * 0.03
         player.subtractFunds(self.fee)
         
     def onSell(self):
@@ -236,7 +241,7 @@ class PROSTITUTE(ShopItem):
         self.winChance = 1
         self.roundPrice = 2
 
-        desc = "Build yourself a gambling army\nBy using your army these girls can gamble you a huge income"
+        desc = "These trained professionals will help with your gambling experience"
         super().__init__(name="Female companion", price=price, description=desc)
         
     #increase count both for status and item count
@@ -255,8 +260,26 @@ class PROSTITUTE(ShopItem):
         pass
 
 
+class BORROW(ShopItem):
+    def __init__(self):
+        price = -40
+        
+        name = "Borrow money from casino"
+        desc = f"For helpless situations. FREE* cash right at your disposal."
+        super().__init__(name=name, description=desc, price=price)
 
+    def _on_purchased(self):
+            self.price += 5
+           
+            player.rawIncomePercent -= 0.06
+            player.addFunds(-self.price)
 
+    
+    def onUpdate(self):
+        pass
+            
+    def onSell(self):
+        pass
 # --- Module Instances ---
 vip = VIP()
 energy = ENERGY()
@@ -265,3 +288,4 @@ russian = RUSSIAN()
 drugs = DRUGS()
 cigs = CIGS()
 prostitute = PROSTITUTE()
+borrow = BORROW()
